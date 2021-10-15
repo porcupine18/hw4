@@ -7,8 +7,49 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @movies = Movie.all
+    
+    @all_ratings = Movie.all_ratings
+    
+    @ratings = params[:ratings] || session[:ratings] || {}
+    
+    if session[:sort].nil? and params[:sort].nil?
+      @sort = "title"
+      
+    elsif params[:sort].nil?
+      @sort = session[:sort]
+      
+    else
+      @sort = params[:sort]
+      session[:sort] = params[:sort]
+    end
+  
+    if params[:ratings].nil? and session[:ratings].nil?
+      @movies = Movie.all
+
+    elsif params[:ratings].nil?
+      @movies = Movie.where(:rating => session[:ratings].keys).order(@sort)
+      
+    else
+      @movies = Movie.where(:rating => params[:ratings].keys).order(@sort)
+      session[:ratings] = params[:ratings]
+    end
+  
   end
+  
+  def same_director
+    
+    @movie = Movie.where(id:params[:id])
+    director_name = @movie.director
+    
+    if (not director_name) or director_name.empty? or director_name.nil?
+      flash[:notice] = "'#{@movie.title}' has no director info"
+      redirect_to movies_path
+      
+    else
+        @movies = Movie.same_directors(dir)
+    end
+    
+  end 
 
   def new
     # default: render 'new' template

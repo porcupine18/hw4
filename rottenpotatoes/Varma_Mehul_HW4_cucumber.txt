@@ -1,0 +1,166 @@
+Using the default profile...
+Feature: display list of movies filtered by MPAA rating
+  As a concerned parent
+  So that I can quickly browse movies appropriate for my family
+  I want to see movies matching only certain MPAA ratings
+
+  Background: movies have been added to database # features/filter_movie_list.feature:7
+    Given the following movies exist:            # features/step_definitions/movies_steps.rb:3
+      | title                   | rating | release_date |
+      | Aladdin                 | G      | 25-Nov-1992  |
+      | The Terminator          | R      | 26-Oct-1984  |
+      | When Harry Met Sally    | R      | 21-Jul-1989  |
+      | The Help                | PG-13  | 10-Aug-2011  |
+      | Chocolat                | PG-13  | 5-Jan-2001   |
+      | Amelie                  | R      | 25-Apr-2001  |
+      | 2001: A Space Odyssey   | G      | 6-Apr-1968   |
+      | The Incredibles         | PG     | 5-Nov-2004   |
+      | Raiders of the Lost Ark | PG     | 12-Jun-1981  |
+      | Chicken Run             | G      | 21-Jun-2000  |
+    And I am on the RottenPotatoes home page     # features/step_definitions/web_steps.rb:44
+    Then 10 seed movies should exist             # features/step_definitions/movies_steps.rb:9
+
+  Scenario: restrict to movies with 'PG' or 'R' ratings # features/filter_movie_list.feature:25
+      # enter step(s) to check the 'PG' and 'R' checkboxes
+    When I check the following ratings: PG, R           # features/step_definitions/movies_steps.rb:35
+      Unable to find checkbox "ratings[PG]" (Capybara::ElementNotFound)
+      ./features/step_definitions/movies_steps.rb:44:in `block (2 levels) in <top (required)>'
+      ./features/step_definitions/movies_steps.rb:37:in `each'
+      ./features/step_definitions/movies_steps.rb:37:in `/I (un)?check the following ratings: (.*)/'
+      features/filter_movie_list.feature:27:in `When I check the following ratings: PG, R'
+      # enter step(s) to uncheck all other checkboxes
+    And I uncheck the following ratings: G, PG-13       # features/step_definitions/movies_steps.rb:35
+      # enter step to "submit" the search form on the homepage
+    And I press "Refresh"                               # features/step_definitions/web_steps.rb:52
+      # enter step(s) to ensure that PG and R movies are visible
+    Then I should see "The Incredibles"                 # features/step_definitions/web_steps.rb:105
+    And I should see "Raiders of the Lost Ark"          # features/step_definitions/web_steps.rb:105
+    And I should see "The Terminator"                   # features/step_definitions/web_steps.rb:105
+    And I should see "When Harry Met Sally"             # features/step_definitions/web_steps.rb:105
+    And I should see "Amelie"                           # features/step_definitions/web_steps.rb:105
+      # enter step(s) to ensure that other movies are not visible
+    And I should not see "Aladdin"                      # features/step_definitions/web_steps.rb:123
+    And I should not see "The Help"                     # features/step_definitions/web_steps.rb:123
+    And I should not see "Chocolat"                     # features/step_definitions/web_steps.rb:123
+    And I should not see "2001: A Space Odyssey"        # features/step_definitions/web_steps.rb:123
+    And I should not see "Chicken Run"                  # features/step_definitions/web_steps.rb:123
+
+  Scenario: all ratings selected                        # features/filter_movie_list.feature:49
+    When I check the following ratings: G, R, PG-13, PG # features/step_definitions/movies_steps.rb:35
+      Unable to find checkbox "ratings[G]" (Capybara::ElementNotFound)
+      ./features/step_definitions/movies_steps.rb:44:in `block (2 levels) in <top (required)>'
+      ./features/step_definitions/movies_steps.rb:37:in `each'
+      ./features/step_definitions/movies_steps.rb:37:in `/I (un)?check the following ratings: (.*)/'
+      features/filter_movie_list.feature:50:in `When I check the following ratings: G, R, PG-13, PG'
+    Then I should see all the movies                    # features/step_definitions/movies_steps.rb:51
+
+Feature: search for movies by director
+  As a movie buff
+  So that I can find movies with my favorite director
+  I want to include and search on director information in movies I enter
+
+  Background: movies in database      # features/movies_by_director.feature:7
+    Given the following movies exist: # features/step_definitions/movies_steps.rb:3
+      | title        | rating | director     | release_date |
+      | Star Wars    | PG     | George Lucas | 1977-05-25   |
+      | Blade Runner | PG     | Ridley Scott | 1982-06-25   |
+      | Alien        | R      |              | 1979-05-25   |
+      | THX-1138     | R      | George Lucas | 1971-03-11   |
+
+  Scenario: add director to existing movie                # features/movies_by_director.feature:16
+    When I go to the edit page for "Alien"                # features/step_definitions/web_steps.rb:48
+    And I fill in "Director" with "Ridley Scott"          # features/step_definitions/web_steps.rb:60
+      Unable to find field "Director" (Capybara::ElementNotFound)
+      ./features/step_definitions/web_steps.rb:61:in `/^(?:|I )fill in "([^"]*)" with "([^"]*)"$/'
+      features/movies_by_director.feature:18:in `And I fill in "Director" with "Ridley Scott"'
+    And I press "Update Movie Info"                       # features/step_definitions/web_steps.rb:52
+    Then the director of "Alien" should be "Ridley Scott" # features/step_definitions/movies_steps.rb:61
+
+  Scenario: find movie with same director                       # features/movies_by_director.feature:22
+    Given I am on the details page for "Star Wars"              # features/step_definitions/web_steps.rb:44
+    When I follow "Find Movies With Same Director"              # features/step_definitions/web_steps.rb:56
+      Unable to find link "Find Movies With Same Director" (Capybara::ElementNotFound)
+      ./features/step_definitions/web_steps.rb:57:in `/^(?:|I )follow "([^"]*)"$/'
+      features/movies_by_director.feature:24:in `When I follow "Find Movies With Same Director"'
+    Then I should be on the Similar Movies page for "Star Wars" # features/step_definitions/web_steps.rb:230
+    And I should see "THX-1138"                                 # features/step_definitions/web_steps.rb:105
+    But I should not see "Blade Runner"                         # features/step_definitions/web_steps.rb:123
+
+  Scenario: can't find similar movies if we don't know director (sad path) # features/movies_by_director.feature:29
+    Given I am on the details page for "Alien"                             # features/step_definitions/web_steps.rb:44
+    Then I should not see "Ridley Scott"                                   # features/step_definitions/web_steps.rb:123
+    When I follow "Find Movies With Same Director"                         # features/step_definitions/web_steps.rb:56
+      Unable to find link "Find Movies With Same Director" (Capybara::ElementNotFound)
+      ./features/step_definitions/web_steps.rb:57:in `/^(?:|I )follow "([^"]*)"$/'
+      features/movies_by_director.feature:32:in `When I follow "Find Movies With Same Director"'
+    Then I should be on the home page                                      # features/step_definitions/web_steps.rb:230
+    And I should see "'Alien' has no director info"                        # features/step_definitions/web_steps.rb:105
+
+Feature: display list of movies filtered by MPAA rating
+  As a concerned parent
+  So that I can quickly browse movies appropriate for my family
+  I want to see movies matching only certain MPAA ratings
+
+  Background: movies have been added to database # features/sort_movie_list.feature:7
+    Given the following movies exist:            # features/step_definitions/movies_steps.rb:3
+      | title                   | rating | release_date |
+      | Aladdin                 | G      | 25-Nov-1992  |
+      | The Terminator          | R      | 26-Oct-1984  |
+      | When Harry Met Sally    | R      | 21-Jul-1989  |
+      | The Help                | PG-13  | 10-Aug-2011  |
+      | Chocolat                | PG-13  | 5-Jan-2001   |
+      | Amelie                  | R      | 25-Apr-2001  |
+      | 2001: A Space Odyssey   | G      | 6-Apr-1968   |
+      | The Incredibles         | PG     | 5-Nov-2004   |
+      | Raiders of the Lost Ark | PG     | 12-Jun-1981  |
+      | Chicken Run             | G      | 21-Jun-2000  |
+    And I am on the RottenPotatoes home page     # features/step_definitions/web_steps.rb:44
+    Then 10 seed movies should exist             # features/step_definitions/movies_steps.rb:9
+
+  Scenario: restrict to movies with 'PG' or 'R' ratings # features/sort_movie_list.feature:25
+      # enter step(s) to check the 'PG' and 'R' checkboxes
+    When I check the following ratings: PG, R           # features/step_definitions/movies_steps.rb:35
+      Unable to find checkbox "ratings[PG]" (Capybara::ElementNotFound)
+      ./features/step_definitions/movies_steps.rb:44:in `block (2 levels) in <top (required)>'
+      ./features/step_definitions/movies_steps.rb:37:in `each'
+      ./features/step_definitions/movies_steps.rb:37:in `/I (un)?check the following ratings: (.*)/'
+      features/sort_movie_list.feature:27:in `When I check the following ratings: PG, R'
+      # enter step(s) to uncheck all other checkboxes
+    And I uncheck the following ratings: G, PG-13       # features/step_definitions/movies_steps.rb:35
+      # enter step to "submit" the search form on the homepage
+    And I press "Refresh"                               # features/step_definitions/web_steps.rb:52
+      # enter step(s) to ensure that PG and R movies are visible
+    Then I should see "The Incredibles"                 # features/step_definitions/web_steps.rb:105
+    And I should see "Raiders of the Lost Ark"          # features/step_definitions/web_steps.rb:105
+    And I should see "The Terminator"                   # features/step_definitions/web_steps.rb:105
+    And I should see "When Harry Met Sally"             # features/step_definitions/web_steps.rb:105
+    And I should see "Amelie"                           # features/step_definitions/web_steps.rb:105
+      # enter step(s) to ensure that other movies are not visible
+    And I should not see "Aladdin"                      # features/step_definitions/web_steps.rb:123
+    And I should not see "The Help"                     # features/step_definitions/web_steps.rb:123
+    And I should not see "Chocolat"                     # features/step_definitions/web_steps.rb:123
+    And I should not see "2001: A Space Odyssey"        # features/step_definitions/web_steps.rb:123
+    And I should not see "Chicken Run"                  # features/step_definitions/web_steps.rb:123
+
+  Scenario: all ratings selected                        # features/sort_movie_list.feature:49
+    When I check the following ratings: G, R, PG-13, PG # features/step_definitions/movies_steps.rb:35
+      Unable to find checkbox "ratings[G]" (Capybara::ElementNotFound)
+      ./features/step_definitions/movies_steps.rb:44:in `block (2 levels) in <top (required)>'
+      ./features/step_definitions/movies_steps.rb:37:in `each'
+      ./features/step_definitions/movies_steps.rb:37:in `/I (un)?check the following ratings: (.*)/'
+      features/sort_movie_list.feature:50:in `When I check the following ratings: G, R, PG-13, PG'
+    Then I should see all the movies                    # features/step_definitions/movies_steps.rb:51
+
+Failing Scenarios:
+cucumber features/filter_movie_list.feature:25 # Scenario: restrict to movies with 'PG' or 'R' ratings
+cucumber features/filter_movie_list.feature:49 # Scenario: all ratings selected
+cucumber features/movies_by_director.feature:16 # Scenario: add director to existing movie
+cucumber features/movies_by_director.feature:22 # Scenario: find movie with same director
+cucumber features/movies_by_director.feature:29 # Scenario: can't find similar movies if we don't know director (sad path)
+cucumber features/sort_movie_list.feature:25 # Scenario: restrict to movies with 'PG' or 'R' ratings
+cucumber features/sort_movie_list.feature:49 # Scenario: all ratings selected
+
+7 scenarios (7 failed)
+59 steps (7 failed, 33 skipped, 19 passed)
+0m0.629s
+Coverage report generated for Cucumber Features, RSpec to /home/ec2-user/environment/my_life_trash/hw4/rottenpotatoes/coverage. 29 / 58 LOC (50.0%) covered.
