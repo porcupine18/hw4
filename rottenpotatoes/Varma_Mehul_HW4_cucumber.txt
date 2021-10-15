@@ -160,6 +160,7 @@ cucumber features/movies_by_director.feature:29 # Scenario: can't find similar m
 cucumber features/sort_movie_list.feature:25 # Scenario: restrict to movies with 'PG' or 'R' ratings
 cucumber features/sort_movie_list.feature:49 # Scenario: all ratings selected
 
-59 steps (19 passed)
-0m0.629s
-Coverage report generated for Cucumber Features, RSpec to /home/ec2-user/environment/my_life_trash/hw4/rottenpotatoes/coverage. 47/58 LOC (81.0%) covered.
+7 scenarios (7 failed)
+59 steps (7 failed, 33 skipped, 19 passed)
+0m0.680s
+Coverage report generated for Cucumber Features, RSpec to /home/ec2-user/environment/my_life_trash/hw4/rottenpotatoes/coverage. 29 / 58 LOC (50.0%) covered.
